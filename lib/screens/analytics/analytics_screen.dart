@@ -85,7 +85,7 @@ class AnalyticsScreen extends ConsumerWidget {
                   return Container(decoration:BoxDecoration(color:baseColor!=null?baseColor.withOpacity(intensity*0.9+0.1):TH.cardAlt(context),borderRadius:BorderRadius.circular(2)));
                 }),
               const SizedBox(height:10),
-              Row(children:[_dot(TH.cardAlt(context),'None'),const SizedBox(width:12),_dot(AC.primary.withOpacity(0.4),'Partial'),const SizedBox(width:12),_dot(AC.success,'Complete')]),
+              Row(children:[_dot(context,TH.cardAlt(context),'None'),const SizedBox(width:12),_dot(context,AC.primary.withOpacity(0.4),'Partial'),const SizedBox(width:12),_dot(context,AC.success,'Complete')]),
             ])).animate().fadeIn(delay:250.ms))),
         SliverToBoxAdapter(child:Padding(padding:const EdgeInsets.symmetric(horizontal:16),
           child:Text('Per-Habit (30 days)',style:TextStyle(fontSize:15,fontWeight:FontWeight.w700,color:TH.text(context))))),
@@ -109,7 +109,7 @@ class AnalyticsScreen extends ConsumerWidget {
       ]),
     );
   }
-  Widget _dot(Color c,String l)=>Row(mainAxisSize:MainAxisSize.min,children:[Container(width:12,height:12,decoration:BoxDecoration(color:c,borderRadius:BorderRadius.circular(3))),const SizedBox(width:4),Text(l,style:TextStyle(fontSize:10,color:TH.muted(context)))]);
+  Widget _dot(BuildContext context,Color c,String l)=>Row(mainAxisSize:MainAxisSize.min,children:[Container(width:12,height:12,decoration:BoxDecoration(color:c,borderRadius:BorderRadius.circular(3))),const SizedBox(width:4),Text(l,style:TextStyle(fontSize:10,color:TH.muted(context)))]);
 }
 class _SC extends StatelessWidget {
   final String e,l,v; final Color c;
