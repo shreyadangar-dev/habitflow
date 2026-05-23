@@ -1,7 +1,7 @@
 name: habitflow
 description: HabitFlow - Build Better Habits Every Day
 publish_to: none
-version: 1.0.0+1
+version: 3.0.0+3
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
@@ -22,6 +22,10 @@ dependencies:
   percent_indicator: ^4.2.3
   confetti: ^0.7.0
   table_calendar: ^3.1.2
+  flutter_local_notifications: ^17.0.0
+  url_launcher: ^6.2.4
+  share_plus: ^7.2.1
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:

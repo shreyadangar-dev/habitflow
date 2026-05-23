@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/theme.dart';
 import '../../core/constants/constants.dart';
-import '../../data/models/models.dart';
+import '../../data/models/habit_model.dart';
+import '../../data/db/db.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common.dart';
 
@@ -114,3 +115,5 @@ class _S extends ConsumerState<AddHabitScreen> {
 
   Widget _lbl(BuildContext c,String t)=>Text(t,style:TextStyle(fontSize:13,fontWeight:FontWeight.w600,color:TH.sub(c),letterSpacing:0.3));
 }
+// Note: Reminder logic added to HabitModel and providers
+// Per-habit reminder can be set from habit detail screen

@@ -8,21 +8,9 @@ class K {
     '🧹','💊','🚴','🏊','🧠','🌅','☕','🌿','🎨','🙏',
     '📝','💻','🏋️','🌙','🤸','🥤','❤️','🎤','🌳','⚡',
   ];
-
-  static const List<String> frequencies = [
-    'Daily','Weekdays','Weekends','3x per week','4x per week','Custom',
-  ];
-
-  static const List<String> categories = [
-    'Health','Fitness','Learning','Mindfulness',
-    'Productivity','Social','Finance','Creative','Other',
-  ];
-
-  static const Map<String,String> catIcons = {
-    'Health':'❤️','Fitness':'💪','Learning':'📚','Mindfulness':'🧘',
-    'Productivity':'🎯','Social':'👥','Finance':'💰','Creative':'🎨','Other':'⭐',
-  };
-
-  static const List<String> moods = ['😄','😊','😐','😔','😢'];
+  static const List<String> frequencies = ['Daily','Weekdays','Weekends','3x per week','4x per week','Custom'];
+  static const List<String> categories  = ['Health','Fitness','Learning','Mindfulness','Productivity','Social','Finance','Creative','Other'];
+  static const Map<String,String> catIcons = {'Health':'❤️','Fitness':'💪','Learning':'📚','Mindfulness':'🧘','Productivity':'🎯','Social':'👥','Finance':'💰','Creative':'🎨','Other':'⭐'};
+  static const List<String> moods      = ['😄','😊','😐','😔','😢'];
   static const List<String> moodLabels = ['Great','Good','Okay','Low','Rough'];
 }

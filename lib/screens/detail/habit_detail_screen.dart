@@ -7,7 +7,8 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/theme.dart';
 import '../../core/utils/helpers.dart';
-import '../../data/models/models.dart';
+import '../../data/models/habit_model.dart';
+import '../../data/db/db.dart';
 import '../../providers/providers.dart';
 import '../add_habit/add_habit_screen.dart';
 

@@ -1,3 +1,4 @@
+import 'package:table_calendar/table_calendar.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -7,7 +8,8 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/theme.dart';
 import '../../core/utils/helpers.dart';
-import '../../data/models/models.dart';
+import '../../data/models/habit_model.dart';
+import '../../data/db/db.dart';
 import '../../providers/providers.dart';
 import '../add_habit/add_habit_screen.dart';
 import '../analytics/analytics_screen.dart';
@@ -62,7 +64,7 @@ class _S extends ConsumerState<HomeScreen> {
           // 7-day selector
           SliverToBoxAdapter(child:SizedBox(height:72,
             child:ListView.builder(scrollDirection:Axis.horizontal,padding:const EdgeInsets.symmetric(horizontal:20),
-              itemCount:7,itemBuilder:(_,i)=>_DayDot(offset:i-6,ref:ref))).animate().fadeIn(delay:200.ms)),
+              itemCount:14,itemBuilder:(_,i)=>_DayDot(offset:i-13,ref:ref))).animate().fadeIn(delay:200.ms)),
           const SliverToBoxAdapter(child:SizedBox(height:10)),
           // Habit list header
           SliverToBoxAdapter(child:Padding(padding:const EdgeInsets.fromLTRB(20,4,20,4),

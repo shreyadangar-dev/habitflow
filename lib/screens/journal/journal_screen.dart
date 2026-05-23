@@ -7,7 +7,8 @@ import '../../core/theme/colors.dart';
 import '../../core/theme/theme.dart';
 import '../../core/constants/constants.dart';
 import '../../core/utils/helpers.dart';
-import '../../data/models/models.dart';
+import '../../data/models/habit_model.dart';
+import '../../data/db/db.dart';
 import '../../providers/providers.dart';
 
 class JournalScreen extends ConsumerWidget {

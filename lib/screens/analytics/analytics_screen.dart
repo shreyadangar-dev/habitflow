@@ -20,7 +20,7 @@ class AnalyticsScreen extends ConsumerWidget {
         Text('📊',style:TextStyle(fontSize:60)),SizedBox(height:16),Text('Add habits to see analytics')])));
 
     final totalDone=habits.fold(0,(s,h)=>s+h.totalCompletions);
-    final bestStreak=habits.map((h)=>h.currentStreak).reduce((a,b)=>a>b?a:b);
+    final bestStreak=habits.map((h)=>h.longestStreak).reduce((a,b)=>a>b?a:b);
     final overallRate=habits.fold(0.0,(s,h)=>s+h.completionRate(30))/habits.length;
     final barData=List.generate(7,(i){
       final d=DateTime.now().subtract(Duration(days:6-i));
