@@ -95,6 +95,18 @@ class _S extends ConsumerState<HomeScreen> {
                     habit:dueOnSel[i], date:sel,
                     onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>HabitDetailScreen(habit:dueOnSel[i]))),
                     onToggle:()=>ref.read(habitProv.notifier).toggle(dueOnSel[i],sel),
+                    onArchive:() async {
+                      final h=dueOnSel[i];
+                      final confirm=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(
+                        backgroundColor:TH.surface(context),
+                        title:Text('Archive \${h.name}?',style:TextStyle(color:TH.text(context))),
+                        content:Text('You can restore it from Settings → Archived Habits.',style:TextStyle(color:TH.sub(context))),
+                        actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:Text('Cancel',style:TextStyle(color:TH.muted(context)))),
+                          TextButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Archive',style:TextStyle(color:AC.warning)))]));
+                      if(confirm==true){h.isArchived=true;await DB.save(h);ref.read(habitProv.notifier).reload();
+                        if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('\${h.name} archived 📦'),
+                          backgroundColor:AC.warning,behavior:SnackBarBehavior.floating,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))));}
+                    },
                   ).animate().fadeIn(delay:Duration(milliseconds:50*i)),
                 )),
           const SliverToBoxAdapter(child:SizedBox(height:100)),
@@ -219,8 +231,8 @@ class _DayDot extends ConsumerWidget {
 }
 
 class _HabitTile extends StatelessWidget {
-  final HabitModel habit; final DateTime date; final VoidCallback onTap, onToggle;
-  const _HabitTile({required this.habit,required this.date,required this.onTap,required this.onToggle});
+  final HabitModel habit; final DateTime date; final VoidCallback onTap, onToggle, onArchive;
+  const _HabitTile({required this.habit,required this.date,required this.onTap,required this.onToggle,required this.onArchive});
   @override
   Widget build(BuildContext context){
     final color=AC.palette[habit.colorIndex%AC.palette.length];
@@ -284,6 +296,12 @@ class _HabitTile extends StatelessWidget {
             Text('7d',style:TextStyle(fontSize:9,color:TH.muted(context))),
           ]),
           const SizedBox(width:4),
+          GestureDetector(
+            onTap:onArchive,
+            child:Container(padding:const EdgeInsets.all(6),
+              decoration:BoxDecoration(color:AC.warning.withOpacity(0.1),borderRadius:BorderRadius.circular(8)),
+              child:const Icon(Iconsax.archive_1,color:AC.warning,size:16))),
+          const SizedBox(width:2),
           Icon(Icons.drag_handle,color:TH.muted(context),size:18),
         ])));
   }
