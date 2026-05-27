@@ -17,6 +17,7 @@ import '../achievements/achievements_screen.dart';
 import '../journal/journal_screen.dart';
 import '../settings/settings_screen.dart';
 import '../detail/habit_detail_screen.dart';
+import '../archive/archive_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -92,8 +93,8 @@ class _S extends ConsumerState<HomeScreen> {
                   key:Key(dueOnSel[i].id), index:i,
                   child:_HabitTile(
                     habit:dueOnSel[i], date:sel,
-                    onTap:()=>ref.read(habitProv.notifier).toggle(dueOnSel[i],sel),
-                    onDetail:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>HabitDetailScreen(habit:dueOnSel[i]))),
+                    onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>HabitDetailScreen(habit:dueOnSel[i]))),
+                    onToggle:()=>ref.read(habitProv.notifier).toggle(dueOnSel[i],sel),
                   ).animate().fadeIn(delay:Duration(milliseconds:50*i)),
                 )),
           const SliverToBoxAdapter(child:SizedBox(height:100)),
@@ -218,15 +219,15 @@ class _DayDot extends ConsumerWidget {
 }
 
 class _HabitTile extends StatelessWidget {
-  final HabitModel habit; final DateTime date; final VoidCallback onTap, onDetail;
-  const _HabitTile({required this.habit,required this.date,required this.onTap,required this.onDetail});
+  final HabitModel habit; final DateTime date; final VoidCallback onTap, onToggle;
+  const _HabitTile({required this.habit,required this.date,required this.onTap,required this.onToggle});
   @override
   Widget build(BuildContext context){
     final color=AC.palette[habit.colorIndex%AC.palette.length];
     final done=habit.isCompletedOn(date);
     final streak=habit.currentStreak;
     return GestureDetector(
-      onLongPress:onDetail,
+      onTap:onTap,
       child:AnimatedContainer(duration:const Duration(milliseconds:250),
         margin:const EdgeInsets.symmetric(horizontal:20,vertical:5),
         padding:const EdgeInsets.all(14),
@@ -234,13 +235,13 @@ class _HabitTile extends StatelessWidget {
           borderRadius:BorderRadius.circular(20),
           border:Border.all(color:done?color.withOpacity(0.4):TH.border(context),width:done?1.5:1)),
         child:Row(children:[
-          GestureDetector(onTap:onTap,child:AnimatedContainer(duration:const Duration(milliseconds:250),
+          GestureDetector(onTap:onToggle,child:AnimatedContainer(duration:const Duration(milliseconds:250),
             width:46,height:46,
             decoration:BoxDecoration(color:done?color:color.withOpacity(0.1),borderRadius:BorderRadius.circular(15),
               border:Border.all(color:color,width:done?0:1.5)),
             child:Center(child:done?const Icon(Icons.check_rounded,color:Colors.white,size:22):Text(habit.icon,style:const TextStyle(fontSize:22))))),
           const SizedBox(width:12),
-          Expanded(child:GestureDetector(onTap:onDetail,child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+          Expanded(child:GestureDetector(onTap:onTap,child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
             Text(habit.name,style:TextStyle(fontSize:15,fontWeight:FontWeight.w700,
               color:done?TH.sub(context):TH.text(context),decoration:done?TextDecoration.lineThrough:null)),
             const SizedBox(height:3),
@@ -250,6 +251,26 @@ class _HabitTile extends StatelessWidget {
                 Text(H.streakLabel(streak),style:const TextStyle(fontSize:11,color:AC.warning,fontWeight:FontWeight.w600))],
             ]),
           ]))),
+          // Quantitative stepper
+          if(habit.isQuantitative)
+            Column(mainAxisAlignment:MainAxisAlignment.center,children:[
+              Text('${habit.getValueFor(date).toStringAsFixed(0)}/${habit.targetValue.toStringAsFixed(0)}',
+                style:TextStyle(fontSize:11,fontWeight:FontWeight.w700,color:color)),
+              Text(habit.unit,style:TextStyle(fontSize:9,color:TH.muted(context))),
+              const SizedBox(height:4),
+              Row(children:[
+                GestureDetector(
+                  onTap:(){final v=(habit.getValueFor(date)-1).clamp(0.0,habit.targetValue*2);habit.logValue(date,v.toDouble());},
+                  child:Container(width:24,height:24,decoration:BoxDecoration(color:color.withOpacity(0.15),borderRadius:BorderRadius.circular(6)),
+                    child:Icon(Icons.remove,size:14,color:color))),
+                const SizedBox(width:4),
+                GestureDetector(
+                  onTap:(){final v=(habit.getValueFor(date)+1).clamp(0.0,habit.targetValue*2);habit.logValue(date,v.toDouble());},
+                  child:Container(width:24,height:24,decoration:BoxDecoration(color:color,borderRadius:BorderRadius.circular(6)),
+                    child:const Icon(Icons.add,size:14,color:Colors.white))),
+              ]),
+            ])
+          else
           // Mini 7-day track
           Column(mainAxisAlignment:MainAxisAlignment.center,children:[
             Row(children:List.generate(7,(i){

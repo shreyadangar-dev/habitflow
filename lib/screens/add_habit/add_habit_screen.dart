@@ -21,6 +21,10 @@ class _S extends ConsumerState<AddHabitScreen> {
   final _noteC=TextEditingController();
   String _icon='💪'; int _ci=0; String _freq='Daily',_cat='Health';
   List<int> _customDays=[];
+  bool _isQuant=false;
+  double _target=8;
+  String _unit='glasses';
+  static const _commonUnits=['glasses','km','minutes','pages','times','reps','hours','steps'];
   static const _days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
   @override void initState(){
@@ -33,7 +37,8 @@ class _S extends ConsumerState<AddHabitScreen> {
     if(!_key.currentState!.validate())return;
     final h=HabitModel(id:widget.edit?.id??const Uuid().v4(),name:_nameC.text.trim(),icon:_icon,colorIndex:_ci,category:_cat,
       frequency:_freq,createdAt:widget.edit?.createdAt??DateTime.now(),note:_noteC.text.trim(),
-      completedDates:widget.edit?.completedDates,customDays:_customDays,sortOrder:widget.edit?.sortOrder??999);
+      completedDates:widget.edit?.completedDates,customDays:_customDays,sortOrder:widget.edit?.sortOrder??999,
+      isQuantitative:_isQuant,targetValue:_target,unit:_unit);
     if(widget.edit!=null)ref.read(habitProv.notifier).update(h);else ref.read(habitProv.notifier).add(h);
     Navigator.pop(context);
   }
@@ -89,6 +94,41 @@ class _S extends ConsumerState<AddHabitScreen> {
                     decoration:BoxDecoration(color:s?color:TH.cardAlt(context),borderRadius:BorderRadius.circular(10),border:Border.all(color:s?color:TH.border(context))),
                     child:Center(child:Text(_days[i],style:TextStyle(fontSize:11,fontWeight:FontWeight.w600,color:s?Colors.white:TH.sub(context))))));
               }))],
+
+            const SizedBox(height:14),
+            Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[
+              _lbl(context,'Quantitative Habit?'),
+              Switch(value:_isQuant,onChanged:(v)=>setState(()=>_isQuant=v),activeColor:color),
+            ]),
+            if(_isQuant)...[
+              const SizedBox(height:10),
+              Row(children:[
+                Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                  _lbl(context,'Daily Target'),
+                  const SizedBox(height:8),
+                  Row(children:[
+                    GestureDetector(onTap:()=>setState(()=>_target=(_target-1).clamp(1,999)),
+                      child:Container(width:36,height:36,decoration:BoxDecoration(color:color.withOpacity(0.15),borderRadius:BorderRadius.circular(10),border:Border.all(color:color)),
+                        child:Icon(Icons.remove,color:color,size:18))),
+                    const SizedBox(width:12),
+                    Text(_target.toStringAsFixed(0),style:TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:TH.text(context))),
+                    const SizedBox(width:12),
+                    GestureDetector(onTap:()=>setState(()=>_target=(_target+1).clamp(1,999)),
+                      child:Container(width:36,height:36,decoration:BoxDecoration(color:color.withOpacity(0.15),borderRadius:BorderRadius.circular(10),border:Border.all(color:color)),
+                        child:Icon(Icons.add,color:color,size:18))),
+                  ]),
+                ])),
+                const SizedBox(width:16),
+                Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                  _lbl(context,'Unit'),
+                  const SizedBox(height:8),
+                  Wrap(spacing:6,runSpacing:6,children:_commonUnits.map((u)=>GestureDetector(onTap:()=>setState(()=>_unit=u),
+                    child:Container(padding:const EdgeInsets.symmetric(horizontal:10,vertical:6),
+                      decoration:BoxDecoration(color:_unit==u?color.withOpacity(0.15):TH.cardAlt(context),borderRadius:BorderRadius.circular(8),border:Border.all(color:_unit==u?color:TH.border(context))),
+                      child:Text(u,style:TextStyle(fontSize:11,fontWeight:FontWeight.w600,color:_unit==u?color:TH.sub(context)))))).toList()),
+                ])),
+              ]),
+            ],
             const SizedBox(height:14),
             _lbl(context,'Note (optional)'),const SizedBox(height:8),
             TextFormField(controller:_noteC,maxLines:2,style:TextStyle(color:TH.text(context)),

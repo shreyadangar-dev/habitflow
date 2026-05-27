@@ -44,7 +44,7 @@ class AT {
         shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16)),
         textStyle:GoogleFonts.plusJakartaSans(fontSize:15,fontWeight:FontWeight.w600))),
       switchTheme: SwitchThemeData(
-        thumbColor:WidgetStateProperty.resolveWith((s)=>s.contains(WidgetState.selected)?Colors.white:mu),
+        thumbColor:WidgetStateProperty.resolveWith((s)=>Colors.white),
         trackColor:WidgetStateProperty.resolveWith((s)=>s.contains(WidgetState.selected)?AC.primary:br)),
       dividerTheme: DividerThemeData(color:br,thickness:1),
       dialogTheme: DialogThemeData(backgroundColor:sf,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(24))),

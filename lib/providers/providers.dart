@@ -28,6 +28,7 @@ class HabitNotifier extends StateNotifier<List<HabitModel>> {
   Future<void> update(HabitModel h) async{await DB.save(h);_load();}
   Future<void> delete(String id) async{await DB.delete(id);_load();}
   Future<void> toggle(HabitModel h,DateTime d) async{h.toggle(d);_load();}
+  Future<void> logValue(HabitModel h,DateTime d,double v) async{h.logValue(d,v);_load();}
   Future<void> archive(HabitModel h) async{h.isArchived=true;await DB.save(h);_load();}
   Future<void> reorder(int oldIdx,int newIdx) async {
     final list=List<HabitModel>.from(state);

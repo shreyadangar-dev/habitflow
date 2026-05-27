@@ -1,7 +1,7 @@
 name: habitflow
 description: HabitFlow - Build Better Habits Every Day
 publish_to: none
-version: 3.0.0+3
+version: 4.0.0+4
 
 environment:
   sdk: ">=3.1.0 <4.0.0"

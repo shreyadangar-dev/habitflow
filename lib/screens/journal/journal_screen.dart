@@ -39,7 +39,17 @@ class JournalScreen extends ConsumerWidget {
           final moodColors=[AC.success,AC.success,AC.warning,AC.warning,AC.danger];
           final c=moodColors[e.moodIndex];
           return Dismissible(key:Key(e.id),direction:DismissDirection.endToStart,
-            onDismissed:(_)=>ref.read(journalProv.notifier).delete(e.id),
+            confirmDismiss:(dir) async {
+                return await showDialog<bool>(context:context,builder:(_)=>AlertDialog(
+                  backgroundColor:TH.surface(context),
+                  title:Text('Delete Entry?',style:TextStyle(color:TH.text(context))),
+                  content:Text('This journal entry will be permanently deleted.',style:TextStyle(color:TH.sub(context))),
+                  actions:[
+                    TextButton(onPressed:()=>Navigator.pop(context,false),child:Text('Cancel',style:TextStyle(color:TH.muted(context)))),
+                    TextButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Delete',style:TextStyle(color:AC.danger))),
+                  ])) ?? false;
+              },
+              onDismissed:(_)=>ref.read(journalProv.notifier).delete(e.id),
             background:Container(alignment:Alignment.centerRight,padding:const EdgeInsets.only(right:20),
               margin:const EdgeInsets.symmetric(horizontal:20,vertical:6),
               decoration:BoxDecoration(color:AC.danger.withOpacity(0.15),borderRadius:BorderRadius.circular(20)),

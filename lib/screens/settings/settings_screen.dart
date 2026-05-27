@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/theme.dart';
 import '../../data/db/db.dart';
+import '../archive/archive_screen.dart';
 import '../../providers/providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -59,6 +60,11 @@ class SettingsScreen extends ConsumerWidget {
 
         // Enhancement #5: Backup & Restore
         SliverToBoxAdapter(child: _Sec('📦 Backup & Restore', [
+          _Tile(Iconsax.archive_1, AC.warning, 'Archived Habits',
+            'View, restore or delete archived habits',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArchiveScreen())),
+            trailing: Icon(Iconsax.arrow_right_3, color: TH.muted(context), size: 16)),
+          const Divider(height: 1),
           _Tile(Iconsax.export, AC.success, 'Export Data', 'Share your habits as JSON backup',
             onTap: () => _export(context),
             trailing: Icon(Iconsax.arrow_right_3, color: TH.muted(context), size: 16)),
