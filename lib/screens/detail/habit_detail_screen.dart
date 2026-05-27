@@ -36,7 +36,7 @@ class HabitDetailScreen extends ConsumerWidget {
           flexibleSpace:FlexibleSpaceBar(
             background:Container(decoration:BoxDecoration(gradient:LinearGradient(
               colors:[color.withOpacity(0.3),TH.bg(context)],begin:Alignment.topCenter,end:Alignment.bottomCenter)),
-              child:SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(20,60,20,20),child:Row(children:[
+              child:SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(20,60,20,20),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
                 Container(width:64,height:64,decoration:BoxDecoration(color:color.withOpacity(0.2),borderRadius:BorderRadius.circular(20),border:Border.all(color:color,width:2)),
                   child:Center(child:Text(habit.icon,style:const TextStyle(fontSize:32)))),
                 const SizedBox(width:16),

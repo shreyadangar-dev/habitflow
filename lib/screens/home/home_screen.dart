@@ -97,14 +97,15 @@ class _S extends ConsumerState<HomeScreen> {
                     onToggle:()=>ref.read(habitProv.notifier).toggle(dueOnSel[i],sel),
                     onArchive:() async {
                       final h=dueOnSel[i];
+                      final hName=h.name;
                       final confirm=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(
                         backgroundColor:TH.surface(context),
-                        title:Text('Archive \${h.name}?',style:TextStyle(color:TH.text(context))),
+                        title:Text('Archive $hName?',style:TextStyle(color:TH.text(context))),
                         content:Text('You can restore it from Settings → Archived Habits.',style:TextStyle(color:TH.sub(context))),
                         actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:Text('Cancel',style:TextStyle(color:TH.muted(context)))),
                           TextButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Archive',style:TextStyle(color:AC.warning)))]));
                       if(confirm==true){h.isArchived=true;await DB.save(h);ref.read(habitProv.notifier).reload();
-                        if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('\${h.name} archived 📦'),
+                        if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('$hName archived 📦'),
                           backgroundColor:AC.warning,behavior:SnackBarBehavior.floating,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))));}
                     },
                   ).animate().fadeIn(delay:Duration(milliseconds:50*i)),

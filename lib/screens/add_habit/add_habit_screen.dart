@@ -98,7 +98,7 @@ class _S extends ConsumerState<AddHabitScreen> {
             const SizedBox(height:14),
             Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[
               _lbl(context,'Quantitative Habit?'),
-              Switch(value:_isQuant,onChanged:(v)=>setState(()=>_isQuant=v),activeColor:color),
+              Switch(value:_isQuant,onChanged:(v)=>setState(()=>_isQuant=v),activeTrackColor:color,activeColor:Colors.white,inactiveThumbColor:Colors.white),
             ]),
             if(_isQuant)...[
               const SizedBox(height:10),

@@ -54,7 +54,7 @@ class SettingsScreen extends ConsumerWidget {
         // Appearance
         SliverToBoxAdapter(child: _Sec('🎨 Appearance', [
           _Tile(Iconsax.moon, AC.primary, 'Dark Mode', s.dark ? 'Enabled' : 'Disabled',
-              trailing: Switch(value: s.dark, onChanged: (v) => ref.read(settingsProv.notifier).setDark(v), activeColor: AC.primary)),
+              trailing: Switch(value: s.dark, onChanged: (v) => ref.read(settingsProv.notifier).setDark(v), activeTrackColor: AC.primary, activeColor: Colors.white, inactiveThumbColor: Colors.white)),
         ])),
         const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
