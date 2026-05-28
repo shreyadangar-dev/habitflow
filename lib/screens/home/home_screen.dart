@@ -89,27 +89,15 @@ class _S extends ConsumerState<HomeScreen> {
             : SliverReorderableList(
                 onReorder:(o,n)=>ref.read(habitProv.notifier).reorder(o,n>o?n-1:n),
                 itemCount:dueOnSel.length,
-                itemBuilder:(_,i)=>ReorderableDragStartListener(
-                  key:Key(dueOnSel[i].id), index:i,
-                  child:_HabitTile(
-                    habit:dueOnSel[i], date:sel,
-                    onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>HabitDetailScreen(habit:dueOnSel[i]))),
-                    onToggle:()=>ref.read(habitProv.notifier).toggle(dueOnSel[i],sel),
-                    onArchive:() async {
-                      final h=dueOnSel[i];
-                      final hName=h.name;
-                      final confirm=await showDialog<bool>(context:context,builder:(_)=>AlertDialog(
-                        backgroundColor:TH.surface(context),
-                        title:Text('Archive $hName?',style:TextStyle(color:TH.text(context))),
-                        content:Text('You can restore it from Settings → Archived Habits.',style:TextStyle(color:TH.sub(context))),
-                        actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:Text('Cancel',style:TextStyle(color:TH.muted(context)))),
-                          TextButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Archive',style:TextStyle(color:AC.warning)))]));
-                      if(confirm==true){h.isArchived=true;await DB.save(h);ref.read(habitProv.notifier).reload();
-                        if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('$hName archived 📦'),
-                          backgroundColor:AC.warning,behavior:SnackBarBehavior.floating,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))));}
-                    },
-                  ).animate().fadeIn(delay:Duration(milliseconds:50*i)),
-                )),
+                itemBuilder:(_,i)=>KeyedSubtree(
+                    key:Key(dueOnSel[i].id),
+                    child:_HabitTile(
+                      habit:dueOnSel[i], date:sel, index:i,
+                      onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>HabitDetailScreen(habit:dueOnSel[i]))),
+                      onToggle:()=>ref.read(habitProv.notifier).toggle(dueOnSel[i],sel),
+                      onReload:()=>ref.read(habitProv.notifier).reload(),
+                    ).animate().fadeIn(delay:Duration(milliseconds:50*i))),
+                ),
           const SliverToBoxAdapter(child:SizedBox(height:100)),
         ]),
         // Confetti
@@ -232,23 +220,59 @@ class _DayDot extends ConsumerWidget {
 }
 
 class _HabitTile extends StatelessWidget {
-  final HabitModel habit; final DateTime date; final VoidCallback onTap, onToggle, onArchive;
-  const _HabitTile({required this.habit,required this.date,required this.onTap,required this.onToggle,required this.onArchive});
+  final HabitModel habit; final DateTime date; final int index; final VoidCallback onTap, onToggle, onReload;
+  const _HabitTile({required this.habit,required this.date,required this.index,required this.onTap,required this.onToggle,required this.onReload});
   @override
   Widget build(BuildContext context){
     final color=AC.palette[habit.colorIndex%AC.palette.length];
     final done=habit.isCompletedOn(date);
     final streak=habit.currentStreak;
-    return GestureDetector(
-      onTap:onTap,
-      child:AnimatedContainer(duration:const Duration(milliseconds:250),
+    return Dismissible(
+      key:Key(habit.id),
+      direction:DismissDirection.endToStart,
+      background:Container(
+        alignment:Alignment.centerRight,
+        padding:const EdgeInsets.only(right:24),
         margin:const EdgeInsets.symmetric(horizontal:20,vertical:5),
-        padding:const EdgeInsets.all(14),
-        decoration:BoxDecoration(color:done?color.withOpacity(0.08):TH.card(context),
-          borderRadius:BorderRadius.circular(20),
-          border:Border.all(color:done?color.withOpacity(0.4):TH.border(context),width:done?1.5:1)),
-        child:Row(children:[
-          GestureDetector(onTap:onToggle,child:AnimatedContainer(duration:const Duration(milliseconds:250),
+        decoration:BoxDecoration(color:AC.warning.withOpacity(0.2),borderRadius:BorderRadius.circular(20)),
+        child:Row(mainAxisAlignment:MainAxisAlignment.end,children:[
+          const Icon(Iconsax.archive_1,color:AC.warning,size:22),
+          const SizedBox(width:8),
+          const Text('Archive',style:TextStyle(color:AC.warning,fontWeight:FontWeight.w700,fontSize:13)),
+          const SizedBox(width:8),
+        ])),
+      confirmDismiss:(_) async => true,
+      onDismissed:(_) async {
+        habit.isArchived=true;
+        await DB.save(habit);
+        // Must reload immediately so dismissed widget leaves the tree
+        onReload();
+        if(context.mounted){
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:Text("${habit.name} archived 📦"),
+            backgroundColor:AC.warning,
+            behavior:SnackBarBehavior.floating,
+            duration:const Duration(seconds:4),
+            shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)),
+            action:SnackBarAction(label:'UNDO',textColor:Colors.white,onPressed:() async {
+              habit.isArchived=false;
+              await DB.save(habit);
+              onReload();
+            })));
+        }
+      },
+      child:GestureDetector(
+        onTap:onTap,
+        onLongPress:()=>_showHabitMenu(context,habit),
+        child:AnimatedContainer(duration:const Duration(milliseconds:250),
+          margin:const EdgeInsets.symmetric(horizontal:20,vertical:5),
+          padding:const EdgeInsets.all(14),
+          decoration:BoxDecoration(color:done?color.withOpacity(0.08):TH.card(context),
+            borderRadius:BorderRadius.circular(20),
+            border:Border.all(color:done?color.withOpacity(0.4):TH.border(context),width:done?1.5:1)),
+          child:Row(children:[
+            GestureDetector(onTap:onToggle,child:AnimatedContainer(duration:const Duration(milliseconds:250),
             width:46,height:46,
             decoration:BoxDecoration(color:done?color:color.withOpacity(0.1),borderRadius:BorderRadius.circular(15),
               border:Border.all(color:color,width:done?0:1.5)),
@@ -273,14 +297,14 @@ class _HabitTile extends StatelessWidget {
               const SizedBox(height:4),
               Row(children:[
                 GestureDetector(
-                  onTap:(){final v=(habit.getValueFor(date)-1).clamp(0.0,habit.targetValue*2);habit.logValue(date,v.toDouble());},
-                  child:Container(width:24,height:24,decoration:BoxDecoration(color:color.withOpacity(0.15),borderRadius:BorderRadius.circular(6)),
-                    child:Icon(Icons.remove,size:14,color:color))),
-                const SizedBox(width:4),
+                  onTap:(){final v=(habit.getValueFor(date)-1).clamp(0.0,habit.targetValue*2);habit.logValue(date,v.toDouble());onReload();},
+                  child:Container(width:36,height:36,decoration:BoxDecoration(color:color.withOpacity(0.15),borderRadius:BorderRadius.circular(10),border:Border.all(color:color.withOpacity(0.3))),
+                    child:Icon(Icons.remove_rounded,size:20,color:color))),
+                const SizedBox(width:6),
                 GestureDetector(
-                  onTap:(){final v=(habit.getValueFor(date)+1).clamp(0.0,habit.targetValue*2);habit.logValue(date,v.toDouble());},
-                  child:Container(width:24,height:24,decoration:BoxDecoration(color:color,borderRadius:BorderRadius.circular(6)),
-                    child:const Icon(Icons.add,size:14,color:Colors.white))),
+                  onTap:(){final v=(habit.getValueFor(date)+1).clamp(0.0,habit.targetValue*2);habit.logValue(date,v.toDouble());onReload();},
+                  child:Container(width:36,height:36,decoration:BoxDecoration(color:color,borderRadius:BorderRadius.circular(10),boxShadow:[BoxShadow(color:color.withOpacity(0.3),blurRadius:6,offset:const Offset(0,2))]),
+                    child:const Icon(Icons.add_rounded,size:20,color:Colors.white))),
               ]),
             ])
           else
@@ -297,13 +321,73 @@ class _HabitTile extends StatelessWidget {
             Text('7d',style:TextStyle(fontSize:9,color:TH.muted(context))),
           ]),
           const SizedBox(width:4),
-          GestureDetector(
-            onTap:onArchive,
-            child:Container(padding:const EdgeInsets.all(6),
-              decoration:BoxDecoration(color:AC.warning.withOpacity(0.1),borderRadius:BorderRadius.circular(8)),
-              child:const Icon(Iconsax.archive_1,color:AC.warning,size:16))),
-          const SizedBox(width:2),
-          Icon(Icons.drag_handle,color:TH.muted(context),size:18),
-        ])));
+          ReorderableDragStartListener(index:index,
+            child:Icon(Icons.drag_handle,color:TH.muted(context),size:22)),
+        ]))));
+  }
+
+  void _showHabitMenu(BuildContext context, HabitModel habit) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: BoxDecoration(color: TH.surface(context), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+        padding: const EdgeInsets.fromLTRB(20,20,20,32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width:40,height:4,decoration:BoxDecoration(color:TH.border(context),borderRadius:BorderRadius.circular(2))),
+          const SizedBox(height:16),
+          Row(children:[
+            Text(habit.icon, style:const TextStyle(fontSize:28)),
+            const SizedBox(width:12),
+            Expanded(child:Text(habit.name, style:TextStyle(fontSize:17,fontWeight:FontWeight.w700,color:TH.text(context)))),
+          ]),
+          const SizedBox(height:16),
+          ListTile(onTap:(){
+            Navigator.pop(context);
+            showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,
+              builder:(_)=>AddHabitScreen(edit:habit));
+          },
+            leading:Container(width:40,height:40,decoration:BoxDecoration(color:AC.primary.withOpacity(0.12),borderRadius:BorderRadius.circular(12)),child:const Icon(Iconsax.edit,color:AC.primary,size:20)),
+            title:const Text('Edit Habit',style:TextStyle(fontWeight:FontWeight.w600))),
+          const Divider(height:1),
+          ListTile(onTap:() async {
+            Navigator.pop(context);
+            habit.isArchived=true;
+            await DB.save(habit);
+            onReload();
+            if(context.mounted){
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content:Text("${habit.name} archived 📦"),
+                backgroundColor:AC.warning,behavior:SnackBarBehavior.floating,
+                duration:const Duration(seconds:4),
+                shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)),
+                action:SnackBarAction(label:'UNDO',textColor:Colors.white,onPressed:() async {
+                  habit.isArchived=false;
+                  await DB.save(habit);
+                  onReload();
+                })));
+            }
+          },
+            leading:Container(width:40,height:40,decoration:BoxDecoration(color:AC.warning.withOpacity(0.12),borderRadius:BorderRadius.circular(12)),child:const Icon(Iconsax.archive_1,color:AC.warning,size:20)),
+            title:const Text('Archive',style:TextStyle(color:AC.warning,fontWeight:FontWeight.w600))),
+          const Divider(height:1),
+          ListTile(onTap:(){
+            Navigator.pop(context);
+            showDialog(context:context,builder:(_)=>AlertDialog(
+              backgroundColor:TH.surface(context),
+              title:Text("Delete \${habit.name}?",style:TextStyle(color:TH.text(context))),
+              content:Text("This permanently deletes this habit.",style:TextStyle(color:TH.sub(context))),
+              actions:[
+                TextButton(onPressed:()=>Navigator.pop(context),child:Text('Cancel',style:TextStyle(color:TH.muted(context)))),
+                TextButton(onPressed:() async {await DB.delete(habit.id);if(context.mounted)Navigator.pop(context);},
+                  child:const Text('Delete',style:TextStyle(color:AC.danger))),
+              ]));
+          },
+            leading:Container(width:40,height:40,decoration:BoxDecoration(color:AC.danger.withOpacity(0.12),borderRadius:BorderRadius.circular(12)),child:const Icon(Iconsax.trash,color:AC.danger,size:20)),
+            title:const Text('Delete',style:TextStyle(color:AC.danger,fontWeight:FontWeight.w600))),
+        ]),
+      ),
+    );
   }
 }

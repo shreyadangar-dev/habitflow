@@ -31,6 +31,7 @@ class HabitDetailScreen extends ConsumerWidget {
           actions:[
             IconButton(onPressed:()=>showModalBottomSheet(context:context,isScrollControlled:true,backgroundColor:Colors.transparent,
               builder:(_)=>AddHabitScreen(edit:habit)),icon:Icon(Iconsax.edit,color:TH.text(context))),
+            IconButton(onPressed:()=>_confirmArchive(context,ref),icon:const Icon(Iconsax.archive_1,color:AC.warning)),
             IconButton(onPressed:()=>_confirmDelete(context,ref),icon:const Icon(Iconsax.trash,color:AC.danger)),
           ],
           flexibleSpace:FlexibleSpaceBar(
@@ -58,6 +59,42 @@ class HabitDetailScreen extends ConsumerWidget {
             const SizedBox(width:10),
             Expanded(child:_StatBox('✅','Total Done','${habit.totalCompletions}',AC.success)),
           ]).animate().fadeIn())),
+
+        // Bug 2: Quantitative progress on detail screen
+        if(habit.isQuantitative)
+          SliverToBoxAdapter(child:Padding(padding:const EdgeInsets.fromLTRB(16,0,16,16),
+            child:Container(padding:const EdgeInsets.all(18),
+              decoration:BoxDecoration(color:TH.card(context),borderRadius:BorderRadius.circular(20),border:Border.all(color:TH.border(context))),
+              child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                Text("Today's Progress",style:TextStyle(fontSize:15,fontWeight:FontWeight.w700,color:TH.text(context))),
+                const SizedBox(height:16),
+                Row(children:[
+                  Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                    Row(children:[
+                      Text('${habit.getValueFor(DateTime.now()).toStringAsFixed(0)}',style:TextStyle(fontSize:36,fontWeight:FontWeight.w800,color:color)),
+                      Text(' / ${habit.targetValue.toStringAsFixed(0)} ${habit.unit}',style:TextStyle(fontSize:16,color:TH.sub(context),fontWeight:FontWeight.w500)),
+                    ]),
+                    const SizedBox(height:8),
+                    ClipRRect(borderRadius:BorderRadius.circular(6),child:LinearProgressIndicator(
+                      value:(habit.getValueFor(DateTime.now())/habit.targetValue).clamp(0.0,1.0),
+                      minHeight:10,backgroundColor:color.withOpacity(0.12),
+                      valueColor:AlwaysStoppedAnimation(color))),
+                  ])),
+                  const SizedBox(width:20),
+                  // +/- stepper
+                  Column(children:[
+                    GestureDetector(
+                      onTap:(){final d=DateTime.now();final v=(habit.getValueFor(d)+1).clamp(0.0,habit.targetValue*2);habit.logValue(d,v);ref.read(habitProv.notifier).reload();},
+                      child:Container(width:48,height:48,decoration:BoxDecoration(color:color,borderRadius:BorderRadius.circular(14),boxShadow:[BoxShadow(color:color.withOpacity(0.3),blurRadius:8,offset:const Offset(0,3))]),
+                        child:const Icon(Icons.add_rounded,color:Colors.white,size:24))),
+                    const SizedBox(height:8),
+                    GestureDetector(
+                      onTap:(){final d=DateTime.now();final v=(habit.getValueFor(d)-1).clamp(0.0,habit.targetValue*2);habit.logValue(d,v);ref.read(habitProv.notifier).reload();},
+                      child:Container(width:48,height:48,decoration:BoxDecoration(color:color.withOpacity(0.15),borderRadius:BorderRadius.circular(14),border:Border.all(color:color.withOpacity(0.3))),
+                        child:Icon(Icons.remove_rounded,color:color,size:24))),
+                  ]),
+                ]),
+              ])))),
 
         // Completion rates
         SliverToBoxAdapter(child:Padding(padding:const EdgeInsets.fromLTRB(16,0,16,16),
@@ -127,10 +164,27 @@ class HabitDetailScreen extends ConsumerWidget {
     );
   }
 
+  void _confirmArchive(BuildContext context,WidgetRef ref)=>showDialog(context:context,builder:(_)=>AlertDialog(
+    backgroundColor:TH.surface(context),
+    title:Text("Archive ${habit.name}?",style:TextStyle(color:TH.text(context))),
+    content:Text("You can restore it from Settings → Archived Habits.",style:TextStyle(color:TH.sub(context))),
+    actions:[
+      TextButton(onPressed:()=>Navigator.pop(context),child:Text('Cancel',style:TextStyle(color:TH.muted(context)))),
+      TextButton(onPressed:() async {
+        habit.isArchived=true;
+        await DB.save(habit);
+        ref.read(habitProv.notifier).reload();
+        if(context.mounted){Navigator.pop(context);Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text("${habit.name} archived 📦"),
+            backgroundColor:AC.warning,behavior:SnackBarBehavior.floating,
+            shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))));}
+      },child:const Text('Archive',style:TextStyle(color:AC.warning))),
+    ]));
+
   void _confirmDelete(BuildContext context,WidgetRef ref)=>showDialog(context:context,builder:(_)=>AlertDialog(
     backgroundColor:TH.surface(context),
-    title:Text('Delete ${habit.name}?',style:TextStyle(color:TH.text(context))),
-    content:Text('This will permanently delete this habit and all its history.',style:TextStyle(color:TH.sub(context))),
+    title:Text("Delete ${habit.name}?",style:TextStyle(color:TH.text(context))),
+    content:Text("This will permanently delete this habit and all its history.",style:TextStyle(color:TH.sub(context))),
     actions:[
       TextButton(onPressed:()=>Navigator.pop(context),child:Text('Cancel',style:TextStyle(color:TH.muted(context)))),
       TextButton(onPressed:(){ref.read(habitProv.notifier).delete(habit.id);Navigator.pop(context);Navigator.pop(context);},
